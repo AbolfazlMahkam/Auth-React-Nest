@@ -2,10 +2,8 @@
 
 <div align="center">
 
-![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
-![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
-![NestJS](https://img.shields.io/badge/nestjs-E0234E?style=for-the-badge&logo=nestjs&logoColor=white)
-![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
+[![My Skills](https://skillicons.dev/icons?i=ts,react,nestjs,tailwind,postgres)](https://skillicons.dev)
+
 ![Turborepo](https://img.shields.io/badge/Turborepo-EF4444?style=for-the-badge&logo=turborepo&logoColor=white)
 
 A modern, full-stack authentication system built with React, NestJS, and TypeScript in a monorepo architecture powered by Turborepo.
