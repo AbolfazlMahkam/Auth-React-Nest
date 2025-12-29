@@ -141,7 +141,7 @@ A modern, full-stack authentication system built with React, NestJS, and TypeScr
    ```
 
    This will start:
-   - Frontend at `http://localhost:5173`
+   - Frontend at `http://localhost:4000`
    - Backend at `http://localhost:3000`
 
 ---
