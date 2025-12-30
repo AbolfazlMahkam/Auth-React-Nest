@@ -124,11 +124,13 @@ A modern, full-stack authentication system built with React, NestJS, and TypeScr
    NODE_ENV=development
 
    # Database Configuration
+   DB_TYPE=postgres
    DB_HOST=localhost
    DB_PORT=5432
    DB_USERNAME=your_db_user
    DB_PASSWORD=your_db_password
    DB_DATABASE=auth_db
+   DB_SYNCHRONIZE=false  # Use migrations instead of auto-sync
 
    # JWT Configuration
    JWT_SECRET=your_super_secret_jwt_key_here
@@ -138,7 +140,6 @@ A modern, full-stack authentication system built with React, NestJS, and TypeScr
 
    # Google OAuth
    GOOGLE_CLIENT_ID=your_google_client_id_here
-   GOOGLE_CLIENT_SECRET=your_google_client_secret_here
 
    # Session Secret
    SESSION_SECRET=your_session_secret_here
@@ -169,7 +170,9 @@ auth-react-nest/
 │   │   │   ├── users/       # Users module
 │   │   │   ├── jwt-auth/    # JWT strategy & guards
 │   │   │   ├── entities/    # TypeORM entities
+│   │   │   ├── migrations/  # Database migrations
 │   │   │   ├── logger/      # Custom logger service
+│   │   │   ├── data-source.ts  # TypeORM DataSource for migrations
 │   │   │   └── main.ts      # Application entry point
 │   │   ├── test/            # E2E tests
 │   │   └── package.json
@@ -227,14 +230,26 @@ npm run lint            # Lint frontend code
 ### Backend (`apps/backend`)
 
 ```bash
+# Development
 npm run dev             # Start NestJS in watch mode
 npm run build           # Build backend
 npm run start           # Start production server
 npm run start:debug     # Start with debugger
+
+# Testing
 npm run test            # Run unit tests
 npm run test:e2e        # Run end-to-end tests
 npm run test:cov        # Generate test coverage
+
+# Code Quality
 npm run lint            # Lint backend code
+
+# Database Migrations
+npm run migration:generate -- src/migrations/Name  # Generate migration from schema
+npm run migration:create -- src/migrations/Name    # Create empty migration
+npm run migration:run          # Run pending migrations
+npm run migration:revert       # Revert last migration
+npm run migration:show         # Show migration status
 ```
 
 ---
@@ -253,11 +268,67 @@ The monorepo uses Turborepo's intelligent build system with the following pipeli
 
 ### TypeORM Database Setup
 
-The backend uses TypeORM for database management. To set up your database:
+The backend uses TypeORM with migrations for database management. Database synchronization is **disabled** to ensure safe, version-controlled schema changes.
 
-1. Create a PostgreSQL database
-2. Update `.env` with your database credentials
-3. Run migrations (if available) or let TypeORM auto-sync in development
+#### Initial Setup
+
+1. **Create a PostgreSQL database**
+   ```bash
+   createdb auth_db
+   ```
+
+2. **Update `.env` with your database credentials**
+   ```env
+   DB_HOST=localhost
+   DB_PORT=5432
+   DB_USERNAME=your_db_user
+   DB_PASSWORD=your_db_password
+   DB_DATABASE=auth_db
+   DB_SYNCHRONIZE=false  # Always false - use migrations instead
+   ```
+
+3. **Install dependencies**
+   ```bash
+   cd apps/backend
+   npm install
+   ```
+
+4. **Run migrations**
+   ```bash
+   cd apps/backend
+   npm run migration:run
+   ```
+
+#### Migration Commands
+
+The project includes the following migration scripts:
+
+```bash
+# Generate a new migration from entity changes
+npm run migration:generate -- src/migrations/DescriptiveName
+
+# Create an empty migration file
+npm run migration:create -- src/migrations/DescriptiveName
+
+# Run all pending migrations
+npm run migration:run
+
+# Revert the last executed migration
+npm run migration:revert
+
+# Show all migrations and their status
+npm run migration:show
+```
+
+#### Migration Workflow
+
+1. **Modify your entities** - Update files in `src/entities/`
+2. **Generate migration** - Run `npm run migration:generate -- src/migrations/YourMigrationName`
+3. **Review the generated migration** - Check the SQL queries in the new migration file
+4. **Run the migration** - Execute `npm run migration:run`
+5. **Commit the migration** - Add the migration file to version control
+
+**Note:** Migrations run automatically on application startup via `migrationsRun: true` in the TypeORM configuration.
 
 ---
 
