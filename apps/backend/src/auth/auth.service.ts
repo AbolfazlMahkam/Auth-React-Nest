@@ -65,14 +65,13 @@ export class AuthService {
     const accessToken = this.jwtService.sign({
       sub: user.id,
       email: user.email,
+      role: user.role,
     });
     return { access_token: accessToken };
   }
 
   async loginByOtp(loginByOtpDto: LoginByOtpDto) {
-    const user = await this.usersService.findUserByPhone(
-      loginByOtpDto.phone,
-    );
+    const user = await this.usersService.findUserByPhone(loginByOtpDto.phone);
     if (!user) {
       throw new HttpException('User not found', 404);
     }
@@ -91,6 +90,7 @@ export class AuthService {
         const accessToken = this.jwtService.sign({
           sub: user.id,
           email: user.email,
+          role: user.role,
         });
         return { access_token: accessToken };
       } else {
@@ -179,6 +179,7 @@ export class AuthService {
       const accessToken = this.jwtService.sign({
         sub: user.id,
         email: user.email,
+        role: user.role,
       });
 
       return { access_token: accessToken };

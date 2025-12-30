@@ -22,8 +22,11 @@ A modern, full-stack authentication system built with React, NestJS, and TypeScr
 - **Phone OTP Authentication** - One-time password login via phone number
 - **Google OAuth 2.0** - One-click sign-in with Google
 - **JWT-based Sessions** - Stateless authentication with refresh tokens
+- **Global Authentication Guards** - Automatic JWT validation on all routes
+- **Role-Based Access Control (RBAC)** - Fine-grained permission system
+- **Custom Decorators** - `@Public()`, `@Roles()`, `@GetUser()` for clean code
 - **Password Encryption** - Industry-standard bcrypt hashing
-- **Protected Routes** - Role-based access control
+- **Token Expiration Handling** - Custom error messages for expired/invalid tokens
 
 ### 👤 User Management
 
@@ -168,8 +171,17 @@ auth-react-nest/
 │   ├── backend/              # NestJS REST API
 │   │   ├── src/
 │   │   │   ├── auth/        # Authentication module
+│   │   │   │   ├── strategies/  # JWT strategy
+│   │   │   │   └── dto/     # Data transfer objects
 │   │   │   ├── users/       # Users module
-│   │   │   ├── jwt-auth/    # JWT strategy & guards
+│   │   │   ├── common/      # Shared resources
+│   │   │   │   ├── guards/  # Authentication & authorization guards
+│   │   │   │   │   ├── jwt-auth.guard.ts  # JWT authentication guard
+│   │   │   │   │   └── roles.guard.ts     # Role-based access control
+│   │   │   │   └── decorators/  # Custom decorators
+│   │   │   │       ├── public.decorator.ts   # @Public() decorator
+│   │   │   │       ├── roles.decorator.ts    # @Roles() decorator
+│   │   │   │       └── get-user.decorator.ts # @GetUser() decorator
 │   │   │   ├── entities/    # TypeORM entities
 │   │   │   ├── migrations/  # Database migrations
 │   │   │   ├── logger/      # Custom logger service
@@ -274,11 +286,13 @@ The backend uses TypeORM with migrations for database management. Database synch
 #### Initial Setup
 
 1. **Create a PostgreSQL database**
+
    ```bash
    createdb auth_db
    ```
 
 2. **Update `.env` with your database credentials**
+
    ```env
    DB_HOST=localhost
    DB_PORT=5432
@@ -289,6 +303,7 @@ The backend uses TypeORM with migrations for database management. Database synch
    ```
 
 3. **Install dependencies**
+
    ```bash
    cd apps/backend
    npm install
@@ -387,6 +402,149 @@ npm run migration:show
 
 ---
 
+## 🛡️ Authentication Guards System
+
+The application implements a comprehensive, multi-layered authentication and authorization system with global guards and custom decorators.
+
+### Guard Architecture
+
+#### 1. **JWT Authentication Guard** (Global)
+
+- Automatically applied to all routes
+- Validates JWT tokens from Authorization header
+- Supports public routes via `@Public()` decorator
+- Custom error handling for expired/invalid tokens
+
+#### 2. **Roles Guard** (Global)
+
+- Enforces role-based access control (RBAC)
+- Works with `@Roles()` decorator
+- Checks user roles against required roles
+- Provides descriptive error messages
+
+### Custom Decorators
+
+#### `@Public()` - Mark Routes as Public
+
+```typescript
+@Public()
+@Post('login')
+login(@Body() loginDto: LoginDto) {
+  return this.authService.login(loginDto);
+}
+```
+
+Routes marked with `@Public()` bypass authentication.
+
+#### `@Roles(...roles)` - Role-Based Access Control
+
+```typescript
+@Roles('admin', 'super_admin')
+@Get()
+findAll() {
+  return this.usersService.findAll();
+}
+```
+
+Only users with specified roles can access the endpoint.
+
+#### `@GetUser(field?)` - Extract User from Request
+
+```typescript
+@Get('me')
+getProfile(@GetUser('id') userId: number) {
+  return this.authService.getProfile(userId);
+}
+
+// Get entire user object
+getProfile(@GetUser() user: any) {
+  // user = { id, email, role }
+}
+```
+
+### Role Hierarchy
+
+- **user** - Standard user (default role)
+- **admin** - Administrative user with elevated privileges
+- **super_admin** - Highest level admin with full access
+
+### Endpoint Protection Examples
+
+#### Public Endpoints (No Authentication Required)
+
+```typescript
+POST /auth/register     - User registration
+POST /auth/login        - Email/password login
+POST /auth/login_otp    - Phone OTP login
+POST /auth/google       - Google OAuth login
+```
+
+#### Protected Endpoints (Authentication Required)
+
+```typescript
+GET /auth/me           - Get current user profile
+GET /users/:id         - Get user by ID (own profile or admin)
+PATCH /users/:id       - Update user (own profile or admin)
+```
+
+#### Admin-Only Endpoints
+
+```typescript
+GET /users             - List all users (admin, super_admin)
+POST /users            - Create user (admin, super_admin)
+DELETE /users/:id      - Delete user (admin, super_admin)
+```
+
+#### Super Admin-Only Endpoints
+
+```typescript
+GET /users/admins/list - List all admins (super_admin only)
+```
+
+### JWT Token Structure
+
+```json
+{
+  "sub": 123, // User ID
+  "email": "user@example.com",
+  "role": "admin", // User role
+  "iat": 1234567890, // Issued at
+  "exp": 1234571490 // Expiration
+}
+```
+
+### Error Responses
+
+**401 Unauthorized** - Invalid/missing token
+
+```json
+{
+  "statusCode": 401,
+  "message": "Token has expired"
+}
+```
+
+**403 Forbidden** - Insufficient permissions
+
+```json
+{
+  "statusCode": 403,
+  "message": "Access denied: Requires one of the following roles: admin, super_admin"
+}
+```
+
+### Security Features
+
+- ✅ Global JWT authentication on all routes by default
+- ✅ Role-based access control (RBAC)
+- ✅ Explicit public route marking with `@Public()`
+- ✅ Custom error messages for better debugging
+- ✅ Token expiration handling
+- ✅ Reflector-based metadata for decorators
+- ✅ TypeScript type safety throughout
+
+---
+
 ## 📚 Documentation
 
 ### API Documentation
@@ -394,23 +552,57 @@ npm run migration:show
 Once the backend is running, you can explore the API:
 
 - **Base URL:** `http://localhost:3000`
-- **Auth Endpoints:**
-  - `POST /auth/register` - Register new user
-  - `POST /auth/login` - Login user
-  - `POST /auth/login_otp` - Phone OTP login (request & verify)
-  - `POST /auth/google` - Google OAuth login
-  - `POST /auth/refresh` - Refresh access token
-  - `GET /auth/me` - Get current user (protected)
 
-- **User Endpoints:**
-  - `GET /users` - Get all users (protected)
-  - `GET /users/:id` - Get user by ID (protected)
-  - `PATCH /users/:id` - Update user (protected)
-  - `DELETE /users/:id` - Delete user (protected)
+#### Auth Endpoints (Public)
+
+- `POST /auth/register` - Register new user
+- `POST /auth/login` - Login user (email/password)
+- `POST /auth/login_otp` - Phone OTP login (request & verify)
+- `POST /auth/google` - Google OAuth login
+
+#### Auth Endpoints (Protected)
+
+- `GET /auth/me` - Get current user profile
+  - **Requires:** Authentication
+  - **Roles:** Any authenticated user
+
+#### User Endpoints
+
+**Public Access:**
+
+- None - All user endpoints require authentication
+
+**Authenticated User Access:**
+
+- `GET /users/:id` - Get user by ID (own profile or admin)
+  - **Requires:** Authentication
+  - **Roles:** Any authenticated user (can view own profile)
+- `PATCH /users/:id` - Update user profile
+  - **Requires:** Authentication
+  - **Roles:** Any authenticated user (can update own profile)
+
+**Admin Access:**
+
+- `GET /users` - Get all users
+  - **Requires:** Authentication
+  - **Roles:** `admin`, `super_admin`
+- `POST /users` - Create new user
+  - **Requires:** Authentication
+  - **Roles:** `admin`, `super_admin`
+- `DELETE /users/:id` - Delete user
+  - **Requires:** Authentication
+  - **Roles:** `admin`, `super_admin`
+
+**Super Admin Access:**
+
+- `GET /users/admins/list` - List all admins
+  - **Requires:** Authentication
+  - **Roles:** `super_admin`
 
 #### Phone OTP Login API Examples
 
 **Step 1: Request OTP**
+
 ```bash
 curl -X POST http://localhost:3000/auth/login_otp \
   -H "Content-Type: application/json" \
@@ -423,6 +615,7 @@ curl -X POST http://localhost:3000/auth/login_otp \
 ```
 
 **Step 2: Verify OTP**
+
 ```bash
 curl -X POST http://localhost:3000/auth/login_otp \
   -H "Content-Type: application/json" \
@@ -435,6 +628,7 @@ curl -X POST http://localhost:3000/auth/login_otp \
 ```
 
 **Notes:**
+
 - Phone number must match a registered user in the database
 - OTP codes are 4-digit numbers (1000-9999)
 - Each OTP can only be used once
@@ -450,6 +644,157 @@ The frontend uses shadcn/ui components. Available components:
 - Toast notifications via Sonner
 
 See `apps/frontend/README.md` for frontend-specific documentation.
+
+---
+
+## 👨‍💻 Developer Guide
+
+### Adding a New Protected Endpoint
+
+**Example: Creating an admin-only dashboard endpoint**
+
+```typescript
+// users.controller.ts
+import { Controller, Get } from "@nestjs/common";
+import { Roles } from "../common/decorators/roles.decorator";
+import { GetUser } from "../common/decorators/get-user.decorator";
+
+@Controller("dashboard")
+export class DashboardController {
+  // Admin-only endpoint
+  @Roles("admin", "super_admin")
+  @Get("stats")
+  getDashboardStats(@GetUser() user: any) {
+    return {
+      message: `Welcome ${user.email}`,
+      role: user.role,
+    };
+  }
+
+  // Public endpoint
+  @Public()
+  @Get("health")
+  healthCheck() {
+    return { status: "ok" };
+  }
+
+  // Any authenticated user
+  @Get("my-activity")
+  getMyActivity(@GetUser("id") userId: number) {
+    return this.service.getUserActivity(userId);
+  }
+}
+```
+
+### Testing Protected Endpoints
+
+**1. Get an access token:**
+
+```bash
+# Login to get token
+curl -X POST http://localhost:3000/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "admin@example.com",
+    "password": "password123"
+  }'
+
+# Response: { "access_token": "eyJhbGc..." }
+```
+
+**2. Use the token in requests:**
+
+```bash
+# Access protected endpoint
+curl -X GET http://localhost:3000/auth/me \
+  -H "Authorization: Bearer eyJhbGc..."
+
+# Access admin endpoint
+curl -X GET http://localhost:3000/users \
+  -H "Authorization: Bearer eyJhbGc..."
+```
+
+### Creating Custom Guards
+
+**Example: Owner-only guard (users can only access their own resources)**
+
+```typescript
+// owner.guard.ts
+import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from '@nestjs/common';
+
+@Injectable()
+export class OwnerGuard implements CanActivate {
+  canActivate(context: ExecutionContext): boolean {
+    const request = context.switchToHttp().getRequest();
+    const user = request.user;
+    const resourceId = parseInt(request.params.id);
+
+    // Allow if admin or owner
+    if (user.role === 'admin' || user.role === 'super_admin') {
+      return true;
+    }
+
+    if (user.id !== resourceId) {
+      throw new ForbiddenException('You can only access your own resources');
+    }
+
+    return true;
+  }
+}
+
+// Usage in controller
+@UseGuards(OwnerGuard)
+@Patch(':id')
+updateProfile(@Param('id') id: number, @Body() updateDto: UpdateUserDto) {
+  return this.usersService.update(id, updateDto);
+}
+```
+
+### Best Practices
+
+1. **Always use `@Public()` explicitly** for public endpoints
+
+   ```typescript
+   @Public()  // Clear indication this is intentionally public
+   @Post('register')
+   ```
+
+2. **Use `@GetUser()` instead of `@Request()`** for cleaner code
+
+   ```typescript
+   // ✅ Good
+   getProfile(@GetUser('id') userId: number)
+
+   // ❌ Avoid
+   getProfile(@Request() req) { const userId = req.user.id; }
+   ```
+
+3. **Order guards from most general to most specific**
+
+   ```typescript
+   // Global guards (in app.module.ts)
+   APP_GUARD → JwtAuthGuard → RolesGuard
+
+   // Controller-level guards
+   @UseGuards(OwnerGuard)  // Applied after global guards
+   ```
+
+4. **Test with different roles** during development
+   - Create test users with different roles
+   - Verify 401 Unauthorized for missing tokens
+   - Verify 403 Forbidden for insufficient permissions
+
+5. **Document role requirements** in your API docs
+   ```typescript
+   /**
+    * Get all users
+    * @requires Authentication
+    * @roles admin, super_admin
+    */
+   @Roles('admin', 'super_admin')
+   @Get()
+   findAll() { }
+   ```
 
 ---
 
