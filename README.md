@@ -2,7 +2,7 @@
 
 <div align="center">
 
-[![My Skills](https://skillicons.dev/icons?i=ts,react,nestjs,tailwind,postgres)](https://skillicons.dev)
+[![My Skills](https://skillicons.dev/icons?i=ts,react,nestjs,tailwind,postgres)]()
 
 ![Turborepo](https://img.shields.io/badge/Turborepo-EF4444?style=for-the-badge&logo=turborepo&logoColor=white)
 
