@@ -17,6 +17,7 @@ A modern, full-stack authentication system built with React, NestJS, and TypeScr
 ## ✨ Features
 
 ### 🔒 Authentication & Authorization
+
 - **Email/Password Authentication** - Secure user registration and login
 - **Google OAuth 2.0** - One-click sign-in with Google
 - **JWT-based Sessions** - Stateless authentication with refresh tokens
@@ -24,12 +25,14 @@ A modern, full-stack authentication system built with React, NestJS, and TypeScr
 - **Protected Routes** - Role-based access control
 
 ### 👤 User Management
+
 - **User Profiles** - View and edit user information
 - **User Directory** - Browse all registered users (admin feature)
 - **Avatar Support** - Radix UI avatar components with fallbacks
 - **Account Settings** - Manage personal information and preferences
 
 ### 🎨 Modern UI/UX
+
 - **Dark/Light Mode** - System-aware theme switching with next-themes
 - **Responsive Design** - Mobile-first approach with Tailwind CSS
 - **shadcn/ui Components** - Beautiful, accessible UI components
@@ -38,6 +41,7 @@ A modern, full-stack authentication system built with React, NestJS, and TypeScr
 - **Smooth Animations** - Polished interactions and transitions
 
 ### 🏗️ Developer Experience
+
 - **Turborepo Monorepo** - Blazing fast build system with smart caching
 - **TypeScript Throughout** - End-to-end type safety
 - **Hot Module Replacement** - Instant feedback during development
@@ -49,6 +53,7 @@ A modern, full-stack authentication system built with React, NestJS, and TypeScr
 ## 🛠️ Tech Stack
 
 ### Frontend (`apps/frontend`)
+
 - **Framework:** React 19 with TypeScript
 - **Build Tool:** Vite
 - **Styling:** Tailwind CSS
@@ -60,6 +65,7 @@ A modern, full-stack authentication system built with React, NestJS, and TypeScr
 - **Icons:** Lucide React
 
 ### Backend (`apps/backend`)
+
 - **Framework:** NestJS
 - **Runtime:** Node.js (≥18)
 - **Database ORM:** TypeORM
@@ -70,6 +76,7 @@ A modern, full-stack authentication system built with React, NestJS, and TypeScr
 - **Testing:** Jest
 
 ### Monorepo Tools
+
 - **Build System:** Turborepo
 - **Package Manager:** npm
 - **TypeScript:** v5.9.2
@@ -88,12 +95,14 @@ A modern, full-stack authentication system built with React, NestJS, and TypeScr
 ### Installation
 
 1. **Clone the repository**
+
    ```bash
    git clone https://github.com/yourusername/auth-react-nest.git
    cd auth-react-nest
    ```
 
 2. **Install dependencies**
+
    ```bash
    npm install
    ```
@@ -101,12 +110,14 @@ A modern, full-stack authentication system built with React, NestJS, and TypeScr
 3. **Set up environment variables**
 
    **Frontend** (`apps/frontend/.env`):
+
    ```env
    VITE_API_URL=http://localhost:3000
    VITE_GOOGLE_CLIENT_ID=your_google_client_id_here
    ```
 
    **Backend** (`apps/backend/.env`):
+
    ```env
    # Server Configuration
    PORT=3000
@@ -136,6 +147,7 @@ A modern, full-stack authentication system built with React, NestJS, and TypeScr
    See `.env.example` files in each app for complete examples.
 
 4. **Start development servers**
+
    ```bash
    npm run dev
    ```
@@ -305,6 +317,7 @@ Once the backend is running, you can explore the API:
 ### Component Library
 
 The frontend uses shadcn/ui components. Available components:
+
 - Button, Input, Label, Select, Checkbox
 - Dialog, Alert Dialog, Dropdown Menu
 - Avatar, Separator, Card

@@ -35,6 +35,7 @@ A modern React single-page application with authentication, built with Vite, Typ
 This is the frontend application for the Auth React NestJS project. It provides a complete user interface for authentication, user management, and profile editing with a modern, responsive design.
 
 **Key Highlights:**
+
 - ⚡ Lightning-fast development with Vite
 - 🎨 Beautiful UI with shadcn/ui and Tailwind CSS
 - 🔒 Secure authentication flow with JWT
@@ -48,6 +49,7 @@ This is the frontend application for the Auth React NestJS project. It provides 
 ## ✨ Features
 
 ### 🔐 Authentication
+
 - **Email/Password Login** - Traditional authentication with validation
 - **User Registration** - Multi-step registration with real-time validation
 - **Google OAuth** - One-click sign-in with Google
@@ -56,6 +58,7 @@ This is the frontend application for the Auth React NestJS project. It provides 
 - **Protected Routes** - Automatic redirection for unauthenticated users
 
 ### 👥 User Management
+
 - **User List** - Browse all registered users
 - **User Profiles** - View detailed user information
 - **Profile Editing** - Update personal information
@@ -63,6 +66,7 @@ This is the frontend application for the Auth React NestJS project. It provides 
 - **Role-based UI** - Different views for different user roles
 
 ### 🎨 UI/UX Features
+
 - **Dark/Light Theme** - Toggle between themes with persistence
 - **Responsive Design** - Works on desktop, tablet, and mobile
 - **Loading States** - Skeleton loaders and spinners
@@ -76,11 +80,13 @@ This is the frontend application for the Auth React NestJS project. It provides 
 ## 🛠️ Tech Stack
 
 ### Core
+
 - **React** 19.2.0 - Latest React with concurrent features
 - **TypeScript** 5.9.3 - Type-safe JavaScript
 - **Vite** 7.2.4 - Next-generation frontend tooling
 
 ### UI & Styling
+
 - **Tailwind CSS** 3.4.19 - Utility-first CSS framework
 - **shadcn/ui** - Radix UI + Tailwind components
 - **Radix UI** - Accessible component primitives
@@ -93,19 +99,23 @@ This is the frontend application for the Auth React NestJS project. It provides 
 - **tailwind-merge** - Intelligent class merging
 
 ### Forms & Validation
+
 - **React Hook Form** 7.69.0 - Performant form library
 - **Zod** 4.2.1 - TypeScript-first schema validation
 - **@hookform/resolvers** - Zod integration for React Hook Form
 
 ### Routing & HTTP
+
 - **React Router** 7.11.0 - Client-side routing
 - **Axios** 1.13.2 - Promise-based HTTP client
 - **@react-oauth/google** - Google OAuth integration
 
 ### Notifications
+
 - **Sonner** 2.0.7 - Beautiful toast notifications
 
 ### Development Tools
+
 - **ESLint** - Code linting with React plugins
 - **Prettier** (root) - Code formatting
 - **TypeScript ESLint** - TypeScript-specific linting
@@ -124,27 +134,32 @@ This is the frontend application for the Auth React NestJS project. It provides 
 ### Installation
 
 1. **Navigate to frontend directory**
+
    ```bash
    cd apps/frontend
    ```
 
 2. **Install dependencies**
+
    ```bash
    npm install
    ```
 
 3. **Create environment file**
+
    ```bash
    cp .env.example .env
    ```
 
 4. **Configure environment variables**
+
    ```env
    VITE_API_URL=http://localhost:3000
    VITE_GOOGLE_CLIENT_ID=your_google_client_id_here
    ```
 
 5. **Start development server**
+
    ```bash
    npm run dev
    ```
@@ -222,29 +237,38 @@ apps/frontend/
 
 ### Public Routes
 
-| Route | Component | Description |
-|-------|-----------|-------------|
-| `/login` | `LoginPage` | User login with email/password or Google |
-| `/register` | `RegisterPage` | New user registration form |
+| Route       | Component      | Description                              |
+| ----------- | -------------- | ---------------------------------------- |
+| `/login`    | `LoginPage`    | User login with email/password or Google |
+| `/register` | `RegisterPage` | New user registration form               |
 
 ### Protected Routes
 
-| Route | Component | Description |
-|-------|-----------|-------------|
-| `/` | `ProfilePage` | User profile view and edit |
+| Route      | Component     | Description                |
+| ---------- | ------------- | -------------------------- |
+| `/`        | `ProfilePage` | User profile view and edit |
 | `/profile` | `ProfilePage` | User profile view and edit |
-| `/users` | `UsersPage` | Directory of all users |
+| `/users`   | `UsersPage`   | Directory of all users     |
 
 ### Route Protection
 
 Protected routes use the `ProtectedRoute` component which:
+
 - Checks authentication status from `AuthContext`
 - Redirects to `/login` if not authenticated
 - Shows loading state during authentication check
 
 **Example:**
+
 ```tsx
-<Route path="/" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+<Route
+  path="/"
+  element={
+    <ProtectedRoute>
+      <ProfilePage />
+    </ProtectedRoute>
+  }
+/>
 ```
 
 ---
@@ -254,11 +278,13 @@ Protected routes use the `ProtectedRoute` component which:
 ### UI Components (shadcn/ui)
 
 All UI components are located in `src/components/ui/` and built with:
+
 - **Radix UI** for accessibility
 - **Tailwind CSS** for styling
 - **CVA** for variant management
 
 **Available Components:**
+
 - `Button` - Clickable button with variants (default, destructive, outline, ghost)
 - `Input` - Text input with validation states
 - `Label` - Form label with accessibility
@@ -274,7 +300,9 @@ All UI components are located in `src/components/ui/` and built with:
 ### Custom Components
 
 #### `Header.tsx`
+
 Navigation header with:
+
 - App logo/title
 - Navigation links
 - Theme toggle
@@ -282,14 +310,18 @@ Navigation header with:
 - Logout functionality
 
 #### `ProtectedRoute.tsx`
+
 Route guard that:
+
 - Checks authentication status
 - Redirects unauthenticated users
 - Shows loading state
 - Passes through authenticated users
 
 #### `ThemeProvider.tsx`
+
 Theme management with:
+
 - System theme detection
 - Dark/light mode toggle
 - Theme persistence
@@ -303,6 +335,7 @@ Theme management with:
 Central authentication state managed by React Context:
 
 **State:**
+
 ```typescript
 {
   user: User | null,
@@ -312,6 +345,7 @@ Central authentication state managed by React Context:
 ```
 
 **Actions:**
+
 ```typescript
 login(email, password): Promise<void>
 loginWithGoogle(credential): Promise<void>
@@ -321,8 +355,9 @@ updateUser(userData): Promise<void>
 ```
 
 **Usage:**
+
 ```tsx
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from "@/context/AuthContext";
 
 function MyComponent() {
   const { user, isAuthenticated, login, logout } = useAuth();
@@ -334,6 +369,7 @@ function MyComponent() {
 ### Local State
 
 Component-level state managed with:
+
 - `useState` for simple state
 - `useForm` from React Hook Form for forms
 - `useToast` for notifications
@@ -345,6 +381,7 @@ Component-level state managed with:
 ### Axios Configuration
 
 Centralized Axios instance (`src/api/axios.ts`) with:
+
 - Base URL from environment variables
 - Request interceptors for auth tokens
 - Response interceptors for error handling
@@ -353,6 +390,7 @@ Centralized Axios instance (`src/api/axios.ts`) with:
 ### API Modules
 
 #### `auth.ts` - Authentication API
+
 ```typescript
 login(email, password): Promise<AuthResponse>
 register(userData): Promise<AuthResponse>
@@ -362,6 +400,7 @@ getCurrentUser(): Promise<User>
 ```
 
 #### `users.ts` - User API
+
 ```typescript
 getUsers(): Promise<User[]>
 getUserById(id): Promise<User>
@@ -372,6 +411,7 @@ deleteUser(id): Promise<void>
 ### Error Handling
 
 API errors are handled with:
+
 - Try-catch blocks in async functions
 - Toast notifications for user feedback
 - Automatic logout on authentication errors
@@ -386,12 +426,14 @@ API errors are handled with:
 Utility-first CSS framework configured with:
 
 **Custom Theme (`tailwind.config.js`):**
+
 - Custom color palette (primary, secondary, accent)
 - Dark mode support
 - Custom spacing and breakpoints
 - Animation utilities
 
 **Usage:**
+
 ```tsx
 <button className="bg-primary text-white px-4 py-2 rounded-md hover:bg-primary/90">
   Click Me
@@ -402,21 +444,24 @@ Utility-first CSS framework configured with:
 
 **`cn()` Helper:**
 Combines class names intelligently:
-```tsx
-import { cn } from '@/lib/utils';
 
-cn('px-4 py-2', isActive && 'bg-blue-500', className)
+```tsx
+import { cn } from "@/lib/utils";
+
+cn("px-4 py-2", isActive && "bg-blue-500", className);
 ```
 
 ### Global Styles
 
 **`index.css`:**
+
 - Tailwind directives
 - CSS variables for theming
 - Global resets
 - Custom scrollbar styles
 
 **`App.css`:**
+
 - Component-specific styles
 - Animation keyframes
 - Layout utilities
@@ -466,6 +511,7 @@ npm run lint            # Run ESLint on src files
 ### Build Output
 
 Production build creates optimized assets in `dist/`:
+
 - Minified JavaScript bundles
 - Optimized CSS
 - Static assets
@@ -478,6 +524,7 @@ Production build creates optimized assets in `dist/`:
 ### Adding a New Page
 
 1. **Create page component** in `src/pages/`
+
    ```tsx
    // src/pages/NewPage.tsx
    export default function NewPage() {
@@ -486,14 +533,22 @@ Production build creates optimized assets in `dist/`:
    ```
 
 2. **Export from index**
+
    ```tsx
    // src/pages/index.ts
-   export { default as NewPage } from './NewPage';
+   export { default as NewPage } from "./NewPage";
    ```
 
 3. **Add route** in `App.tsx`
    ```tsx
-   <Route path="/new" element={<ProtectedRoute><NewPage /></ProtectedRoute>} />
+   <Route
+     path="/new"
+     element={
+       <ProtectedRoute>
+         <NewPage />
+       </ProtectedRoute>
+     }
+   />
    ```
 
 ### Adding shadcn/ui Components
@@ -503,6 +558,7 @@ npx shadcn@latest add <component-name>
 ```
 
 Example:
+
 ```bash
 npx shadcn@latest add card
 ```
@@ -510,16 +566,20 @@ npx shadcn@latest add card
 ### Form Validation with Zod
 
 ```tsx
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 
 const schema = z.object({
-  email: z.string().email('Invalid email'),
-  password: z.string().min(6, 'Minimum 6 characters'),
+  email: z.string().email("Invalid email"),
+  password: z.string().min(6, "Minimum 6 characters"),
 });
 
-const { register, handleSubmit, formState: { errors } } = useForm({
+const {
+  register,
+  handleSubmit,
+  formState: { errors },
+} = useForm({
   resolver: zodResolver(schema),
 });
 ```
@@ -527,9 +587,9 @@ const { register, handleSubmit, formState: { errors } } = useForm({
 ### Making API Calls
 
 ```tsx
-import { useState } from 'react';
-import { getUsers } from '@/api/users';
-import { toast } from 'sonner';
+import { useState } from "react";
+import { getUsers } from "@/api/users";
+import { toast } from "sonner";
 
 function MyComponent() {
   const [users, setUsers] = useState([]);
@@ -541,7 +601,7 @@ function MyComponent() {
       const data = await getUsers();
       setUsers(data);
     } catch (error) {
-      toast.error('Failed to fetch users');
+      toast.error("Failed to fetch users");
     } finally {
       setLoading(false);
     }
@@ -564,6 +624,7 @@ function MyComponent() {
 ### React DevTools
 
 Install the React DevTools browser extension for:
+
 - Component tree inspection
 - Props and state viewing
 - Performance profiling
@@ -571,6 +632,7 @@ Install the React DevTools browser extension for:
 ### Network Inspection
 
 Use browser DevTools Network tab to:
+
 - Monitor API calls
 - Inspect request/response headers
 - Debug authentication tokens
@@ -600,6 +662,7 @@ netlify deploy --prod --dir=dist
 ### Environment Variables
 
 Set production environment variables in your hosting platform:
+
 - `VITE_API_URL` - Production backend URL
 - `VITE_GOOGLE_CLIENT_ID` - Google OAuth client ID
 
@@ -622,12 +685,14 @@ Set production environment variables in your hosting platform:
 ### Common Issues
 
 **Port already in use:**
+
 ```bash
 # Change port in vite.config.ts or kill process
 lsof -ti:5173 | xargs kill
 ```
 
 **Module not found:**
+
 ```bash
 # Clear node_modules and reinstall
 rm -rf node_modules package-lock.json
@@ -635,10 +700,12 @@ npm install
 ```
 
 **CORS errors:**
+
 - Ensure backend allows `http://localhost:5173` origin
 - Check `VITE_API_URL` in `.env`
 
 **Google OAuth not working:**
+
 - Verify Client ID in `.env`
 - Check authorized origins in Google Console
 - Clear browser cache

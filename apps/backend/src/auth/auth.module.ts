@@ -16,7 +16,8 @@ import Codes from '../entities/code.entity';
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService): JwtModuleOptions => {
-        const secret = configService.get<string>('JWT_SECRET') || 'default-jwt-secret';
+        const secret =
+          configService.get<string>('JWT_SECRET') || 'default-jwt-secret';
         const expiresIn = configService.get<string>('JWT_EXPIRES_IN') || '1d';
 
         return {

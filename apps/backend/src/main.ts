@@ -10,7 +10,8 @@ async function bootstrap() {
   const configService = app.get(ConfigService);
 
   app.enableCors({
-    origin: configService.get<string>('FRONTEND_URL') || 'http://localhost:4000',
+    origin:
+      configService.get<string>('FRONTEND_URL') || 'http://localhost:4000',
     credentials: true,
   });
 
@@ -22,7 +23,8 @@ async function bootstrap() {
 
   app.use(
     session({
-      secret: configService.get<string>('SESSION_SECRET') || 'default-session-secret',
+      secret:
+        configService.get<string>('SESSION_SECRET') || 'default-session-secret',
       resave: false,
       saveUninitialized: false,
       cookie: {

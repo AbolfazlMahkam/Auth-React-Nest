@@ -34,6 +34,7 @@ A robust, scalable REST API built with NestJS, TypeORM, and PostgreSQL with JWT 
 This is the backend REST API for the Auth React NestJS project. It provides a complete authentication system with user management, built following NestJS best practices and clean architecture principles.
 
 **Key Highlights:**
+
 - 🔐 Secure JWT-based authentication
 - 🌐 Google OAuth 2.0 integration
 - 🗄️ TypeORM with PostgreSQL
@@ -48,6 +49,7 @@ This is the backend REST API for the Auth React NestJS project. It provides a co
 ## ✨ Features
 
 ### 🔐 Authentication & Security
+
 - **JWT Authentication** - Stateless authentication with access & refresh tokens
 - **Passport.js Integration** - Strategic authentication handling
 - **Password Hashing** - bcryptjs with salt rounds
@@ -57,6 +59,7 @@ This is the backend REST API for the Auth React NestJS project. It provides a co
 - **Token Refresh** - Automatic token renewal
 
 ### 👥 User Management
+
 - **CRUD Operations** - Create, Read, Update, Delete users
 - **User Registration** - Validated user signup
 - **Profile Management** - Update user information
@@ -64,12 +67,14 @@ This is the backend REST API for the Auth React NestJS project. It provides a co
 - **Soft Delete** - Safe user deletion (if implemented)
 
 ### 🛡️ Validation & Error Handling
+
 - **DTO Validation** - class-validator for request validation
 - **Global Exception Filter** - Centralized error handling
 - **Custom Validation Pipes** - Transform and validate payloads
 - **Typed Responses** - Consistent API response structure
 
 ### 📊 Infrastructure
+
 - **TypeORM** - Database ORM with migration support
 - **Database Entities** - Type-safe database models
 - **Dependency Injection** - NestJS IoC container
@@ -81,17 +86,20 @@ This is the backend REST API for the Auth React NestJS project. It provides a co
 ## 🛠️ Tech Stack
 
 ### Core
+
 - **NestJS** 11.0.1 - Progressive Node.js framework
 - **TypeScript** 5.7.3 - Strongly typed JavaScript
 - **Node.js** ≥18.0.0 - Runtime environment
 
 ### Database & ORM
+
 - **TypeORM** 11.0.0 - TypeScript ORM
 - **PostgreSQL** (via pg 8.16.3) - Relational database
 - **Class Transformer** - Object transformation
 - **Class Validator** - DTO validation
 
 ### Authentication
+
 - **Passport** 0.7.0 - Authentication middleware
 - **Passport JWT** 4.0.1 - JWT strategy
 - **@nestjs/jwt** 11.0.2 - JWT utilities
@@ -101,6 +109,7 @@ This is the backend REST API for the Auth React NestJS project. It provides a co
 - **Express Session** 1.18.2 - Session management
 
 ### Development & Testing
+
 - **Jest** 30.0.0 - Testing framework
 - **Supertest** 7.0.0 - HTTP assertions
 - **ts-jest** 29.2.5 - TypeScript Jest transformer
@@ -121,16 +130,19 @@ This is the backend REST API for the Auth React NestJS project. It provides a co
 ### Installation
 
 1. **Navigate to backend directory**
+
    ```bash
    cd apps/backend
    ```
 
 2. **Install dependencies**
+
    ```bash
    npm install
    ```
 
 3. **Set up database**
+
    ```bash
    # Create PostgreSQL database
    createdb auth_db
@@ -141,6 +153,7 @@ This is the backend REST API for the Auth React NestJS project. It provides a co
    ```
 
 4. **Configure environment**
+
    ```bash
    cp .env.example .env
    ```
@@ -148,11 +161,13 @@ This is the backend REST API for the Auth React NestJS project. It provides a co
    Edit `.env` with your credentials (see [Environment Variables](#-environment-variables))
 
 5. **Run migrations** (if applicable)
+
    ```bash
    npm run migration:run
    ```
 
 6. **Start development server**
+
    ```bash
    npm run dev
    ```
@@ -223,6 +238,7 @@ apps/backend/
 ## 📡 API Documentation
 
 ### Base URL
+
 ```
 http://localhost:3000
 ```
@@ -230,6 +246,7 @@ http://localhost:3000
 ### Authentication Endpoints
 
 #### Register User
+
 ```http
 POST /auth/register
 Content-Type: application/json
@@ -255,6 +272,7 @@ Response: 201 Created
 ```
 
 #### Login
+
 ```http
 POST /auth/login
 Content-Type: application/json
@@ -273,6 +291,7 @@ Response: 200 OK
 ```
 
 #### Google OAuth Login
+
 ```http
 POST /auth/google
 Content-Type: application/json
@@ -290,6 +309,7 @@ Response: 200 OK
 ```
 
 #### Refresh Token
+
 ```http
 POST /auth/refresh
 Content-Type: application/json
@@ -305,6 +325,7 @@ Response: 200 OK
 ```
 
 #### Get Current User
+
 ```http
 GET /auth/me
 Authorization: Bearer <access_token>
@@ -321,6 +342,7 @@ Response: 200 OK
 ### User Endpoints
 
 #### Get All Users
+
 ```http
 GET /users
 Authorization: Bearer <access_token>
@@ -338,6 +360,7 @@ Response: 200 OK
 ```
 
 #### Get User by ID
+
 ```http
 GET /users/:id
 Authorization: Bearer <access_token>
@@ -352,6 +375,7 @@ Response: 200 OK
 ```
 
 #### Update User
+
 ```http
 PATCH /users/:id
 Authorization: Bearer <access_token>
@@ -372,6 +396,7 @@ Response: 200 OK
 ```
 
 #### Delete User
+
 ```http
 DELETE /users/:id
 Authorization: Bearer <access_token>
@@ -451,12 +476,13 @@ TypeOrmModule.forRoot({
   database: process.env.DB_DATABASE,
   entities: [User],
   synchronize: process.env.NODE_ENV === 'development',
-})
+});
 ```
 
 ### User Entity
 
 **`user.entity.ts`**
+
 ```typescript
 @Entity('users')
 export class User {
@@ -489,16 +515,19 @@ export class User {
 ### Migrations
 
 Generate migration:
+
 ```bash
 npm run migration:generate -- -n MigrationName
 ```
 
 Run migrations:
+
 ```bash
 npm run migration:run
 ```
 
 Revert migration:
+
 ```bash
 npm run migration:revert
 ```
@@ -602,6 +631,7 @@ describe('AuthService', () => {
 ```
 
 Run unit tests:
+
 ```bash
 npm run test
 ```
@@ -623,6 +653,7 @@ describe('Auth (e2e)', () => {
 ```
 
 Run E2E tests:
+
 ```bash
 npm run test:e2e
 ```
@@ -630,6 +661,7 @@ npm run test:e2e
 ### Test Coverage
 
 Generate coverage report:
+
 ```bash
 npm run test:cov
 ```
@@ -696,24 +728,31 @@ getProtected(@CurrentUser() user: User) {
 ## 📚 NestJS Concepts
 
 ### Modules
+
 Organize application into feature-based modules with controllers, services, and providers.
 
 ### Controllers
+
 Handle incoming requests and return responses to the client.
 
 ### Services (Providers)
+
 Contain business logic and interact with the database.
 
 ### Guards
+
 Determine whether a request should be handled by the route handler.
 
 ### Interceptors
+
 Transform or modify incoming requests or outgoing responses.
 
 ### Pipes
+
 Transform and validate input data.
 
 ### Middleware
+
 Execute code before route handlers.
 
 ---
@@ -741,7 +780,7 @@ app.useGlobalPipes(
     whitelist: true,
     forbidNonWhitelisted: true,
     transform: true,
-  })
+  }),
 );
 ```
 
@@ -758,22 +797,26 @@ app.setGlobalPrefix('api');
 ## 🐛 Troubleshooting
 
 ### Database Connection Failed
+
 - Verify PostgreSQL is running
 - Check database credentials in `.env`
 - Ensure database exists
 
 ### JWT Token Invalid
+
 - Check JWT_SECRET matches between environments
 - Verify token hasn't expired
 - Ensure token format is correct (Bearer <token>)
 
 ### Module Not Found
+
 ```bash
 rm -rf node_modules package-lock.json
 npm install
 ```
 
 ### Port Already in Use
+
 ```bash
 # Find and kill process on port 3000
 lsof -ti:3000 | xargs kill

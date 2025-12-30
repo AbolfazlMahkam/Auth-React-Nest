@@ -5,7 +5,8 @@ import {
   LogOut,
   User,
   Menu,
-  Users as UsersIcon, Home
+  Users as UsersIcon,
+  Home,
 } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { useTheme } from "@/components/theme-provider";
@@ -138,7 +139,10 @@ export function Header() {
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuItem asChild>
-            <NavLink to="/profile" className="flex items-center gap-2 cursor-pointer">
+            <NavLink
+              to="/profile"
+              className="flex items-center gap-2 cursor-pointer"
+            >
               <User className="h-4 w-4" />
               <span>My Profile</span>
             </NavLink>
