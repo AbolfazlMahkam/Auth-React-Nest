@@ -1,8 +1,9 @@
-import { IsEmail, IsOptional } from 'class-validator';
+import { IsString, IsOptional, IsNumber } from 'class-validator';
 
 export class LoginByOtpDto {
-  @IsEmail()
-  email: string;
+  @IsString()
+  phone: string;
   @IsOptional()
+  @IsNumber()
   code: number;
 }

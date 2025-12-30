@@ -28,7 +28,7 @@ const emailLoginSchema = z.object({
 });
 
 const otpRequestSchema = z.object({
-  emailOrPhone: z.string().min(1, "Email or phone required"),
+  phone: z.string().min(1, "Phone number required"),
 });
 
 const otpVerifySchema = z.object({
@@ -50,7 +50,7 @@ export function LoginPage() {
 
   // OTP specific state
   const [otpSent, setOtpSent] = useState(false);
-  const [otpEmail, setOtpEmail] = useState("");
+  const [otpPhone, setOtpPhone] = useState("");
   const [resendTimer, setResendTimer] = useState(0);
   const [devOtpCode, setDevOtpCode] = useState<number | null>(null);
 
@@ -109,11 +109,11 @@ export function LoginPage() {
     try {
       setIsSubmitting(true);
 
-      const response = await loginWithOtp(data.emailOrPhone);
+      const response = await loginWithOtp(data.phone);
 
       if (response.code) {
         setDevOtpCode(response.code);
-        setOtpEmail(data.emailOrPhone);
+        setOtpPhone(data.phone);
         setOtpSent(true);
         setResendTimer(60);
         toast.success("OTP sent successfully!", { id: toastId });
@@ -134,7 +134,7 @@ export function LoginPage() {
     try {
       setIsSubmitting(true);
 
-      await loginWithOtp(otpEmail, parseInt(data.code));
+      await loginWithOtp(otpPhone, parseInt(data.code));
       toast.success("Logged in successfully!", { id: toastId });
     } catch (err: any) {
       toast.error(err.message || "Invalid OTP. Please try again.", {
@@ -152,7 +152,7 @@ export function LoginPage() {
     const toastId = toast.loading("Resending OTP...");
 
     try {
-      const response = await loginWithOtp(otpEmail);
+      const response = await loginWithOtp(otpPhone);
 
       if (response.code) {
         setDevOtpCode(response.code);
@@ -317,25 +317,24 @@ export function LoginPage() {
               className="space-y-4"
             >
               <div className="space-y-2">
-                <Label htmlFor="emailOrPhone">Email or Phone</Label>
+                <Label htmlFor="phone">Phone number</Label>
                 <Input
-                  id="emailOrPhone"
-                  {...otpRequestForm.register("emailOrPhone")}
-                  placeholder="john.doe@example.com or +1234567890"
+                  id="phone"
+                  {...otpRequestForm.register("phone")}
+                  placeholder="+1234567890"
                   className={
-                    otpRequestForm.formState.errors.emailOrPhone
+                    otpRequestForm.formState.errors.phone
                       ? "border-destructive"
                       : ""
                   }
                 />
-                {otpRequestForm.formState.errors.emailOrPhone && (
+                {otpRequestForm.formState.errors.phone && (
                   <p className="text-sm text-destructive">
-                    {otpRequestForm.formState.errors.emailOrPhone.message}
+                    {otpRequestForm.formState.errors.phone.message}
                   </p>
                 )}
                 <p className="text-xs text-muted-foreground">
-                  Enter your email or phone number to receive a one-time
-                  password
+                  Enter your phone number to receive a one-time password
                 </p>
               </div>
 
@@ -383,7 +382,7 @@ export function LoginPage() {
                   </p>
                 )}
                 <p className="text-xs text-muted-foreground text-center">
-                  OTP sent to {otpEmail}
+                  OTP sent to {otpPhone}
                 </p>
               </div>
 
@@ -405,7 +404,7 @@ export function LoginPage() {
                   }}
                   className="text-sm text-muted-foreground hover:text-foreground"
                 >
-                  Change email/phone
+                  Change phone number
                 </button>
               </div>
 

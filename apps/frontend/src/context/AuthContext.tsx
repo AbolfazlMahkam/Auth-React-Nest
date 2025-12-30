@@ -19,7 +19,7 @@ interface AuthContextType {
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
   loginWithOtp: (
-    email: string,
+    phone: string,
     code?: number,
   ) => Promise<{ code?: number; access_token?: string }>;
   loginWithGoogle: (credential: string) => Promise<void>;
@@ -86,9 +86,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  async function loginWithOtp(email: string, code?: number) {
+  async function loginWithOtp(phone: string, code?: number) {
     try {
-      const response = await authAPI.loginByOtp({ email, code });
+      const response = await authAPI.loginByOtp({ phone, code });
 
       // First call returns OTP code (in development)
       if (response.code) {

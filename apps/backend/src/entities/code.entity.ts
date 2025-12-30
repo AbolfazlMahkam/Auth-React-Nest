@@ -5,7 +5,7 @@ export default class Codes {
   @PrimaryGeneratedColumn()
   id: number;
   @Column({ nullable: false })
-  email: string;
+  phone: string;
   @Column({ nullable: false })
   code: number;
   @Column({ nullable: true, default: false })

@@ -70,8 +70,8 @@ export class AuthService {
   }
 
   async loginByOtp(loginByOtpDto: LoginByOtpDto) {
-    const user = await this.usersService.findUserByEmailWithPassword(
-      loginByOtpDto.email,
+    const user = await this.usersService.findUserByPhone(
+      loginByOtpDto.phone,
     );
     if (!user) {
       throw new HttpException('User not found', 404);
@@ -81,7 +81,7 @@ export class AuthService {
       const checkCode = await this.codeRepository.findOne({
         where: {
           code: loginByOtpDto.code,
-          email: loginByOtpDto.email,
+          phone: loginByOtpDto.phone,
           is_used: false,
         },
       });
@@ -100,7 +100,7 @@ export class AuthService {
       const otp = await this.generateOtpCode();
       await this.codeRepository.save({
         code: otp,
-        email: loginByOtpDto.email,
+        phone: loginByOtpDto.phone,
       });
       return { code: otp };
     }

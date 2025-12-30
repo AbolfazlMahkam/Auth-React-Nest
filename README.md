@@ -19,6 +19,7 @@ A modern, full-stack authentication system built with React, NestJS, and TypeScr
 ### 🔒 Authentication & Authorization
 
 - **Email/Password Authentication** - Secure user registration and login
+- **Phone OTP Authentication** - One-time password login via phone number
 - **Google OAuth 2.0** - One-click sign-in with Google
 - **JWT-based Sessions** - Stateless authentication with refresh tokens
 - **Password Encryption** - Industry-standard bcrypt hashing
@@ -348,6 +349,27 @@ npm run migration:show
    - JWT access token + refresh token returned
    - Frontend stores tokens and updates auth state
 
+### Phone OTP Authentication Flow
+
+1. **Request OTP**
+   - User enters their phone number
+   - Backend generates a 4-digit OTP code
+   - OTP code stored in database with phone number
+   - Code returned to frontend (for development/testing)
+
+2. **Verify OTP**
+   - User enters the 4-digit OTP code
+   - Backend validates phone number + OTP combination
+   - OTP marked as used in database
+   - JWT access token generated and returned
+   - Frontend stores token and updates auth state
+
+3. **Features**
+   - 4-digit numeric OTP codes
+   - One-time use codes (marked as used after verification)
+   - 60-second resend timer
+   - Development mode displays OTP for testing
+
 ### Google OAuth Flow
 
 1. User clicks "Sign in with Google"
@@ -375,6 +397,7 @@ Once the backend is running, you can explore the API:
 - **Auth Endpoints:**
   - `POST /auth/register` - Register new user
   - `POST /auth/login` - Login user
+  - `POST /auth/login_otp` - Phone OTP login (request & verify)
   - `POST /auth/google` - Google OAuth login
   - `POST /auth/refresh` - Refresh access token
   - `GET /auth/me` - Get current user (protected)
@@ -384,6 +407,38 @@ Once the backend is running, you can explore the API:
   - `GET /users/:id` - Get user by ID (protected)
   - `PATCH /users/:id` - Update user (protected)
   - `DELETE /users/:id` - Delete user (protected)
+
+#### Phone OTP Login API Examples
+
+**Step 1: Request OTP**
+```bash
+curl -X POST http://localhost:3000/auth/login_otp \
+  -H "Content-Type: application/json" \
+  -d '{"phone": "+1234567890"}'
+
+# Response:
+{
+  "code": 1234  # 4-digit OTP (in development mode)
+}
+```
+
+**Step 2: Verify OTP**
+```bash
+curl -X POST http://localhost:3000/auth/login_otp \
+  -H "Content-Type: application/json" \
+  -d '{"phone": "+1234567890", "code": 1234}'
+
+# Response:
+{
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+```
+
+**Notes:**
+- Phone number must match a registered user in the database
+- OTP codes are 4-digit numbers (1000-9999)
+- Each OTP can only be used once
+- In production, OTP should be sent via SMS service (e.g., Twilio)
 
 ### Component Library
 
