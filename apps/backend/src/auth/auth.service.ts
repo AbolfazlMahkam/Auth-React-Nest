@@ -6,6 +6,7 @@ import * as bcrypt from 'bcryptjs';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import Codes from '../entities/code.entity';
+import Users from '../entities/user.entity';
 import { Repository } from 'typeorm';
 import { LoginByOtpDto } from './dto/login-otp.dto';
 import { GoogleLoginDto } from './dto/google-login.dto';
@@ -18,49 +19,20 @@ export class AuthService {
     private readonly jwtService: JwtService,
     @InjectRepository(Codes)
     private codeRepository: Repository<Codes>,
+    @InjectRepository(Users)
+    private usersRepository: Repository<Users>,
   ) {}
 
   async register(registerDto: RegisterDto) {
-    try {
-      const existingEmail = await this.usersService.findUserByEmail(
-        registerDto.email,
-      );
-      if (existingEmail) {
-        throw new HttpException('Email already exists', 400);
-      }
-
-      const existingPhone = await this.usersService.findUserByPhone(
-        registerDto.phone,
-      );
-      if (existingPhone) {
-        throw new HttpException('Phone number already exists', 400);
-      }
-
-      const password = await bcrypt.hash(registerDto.password, 10);
-      registerDto.password = password;
-      registerDto.role = registerDto.role || 'user';
-      return await this.usersService.createUser(registerDto);
-    } catch (error) {
-      console.error('Registration error:', error);
-      throw error;
-    }
+    const password = await bcrypt.hash(registerDto.password, 10);
+    registerDto.password = password;
+    registerDto.role = registerDto.role || 'user';
+    return await this.usersService.createUser(registerDto);
   }
 
-  async login(loginDto: LoginDto) {
-    const user = await this.usersService.findUserByEmailWithPassword(
-      loginDto.email,
-    );
-    if (!user) {
-      throw new HttpException('User not found', 404);
-    }
-
-    const isPasswordMath = await bcrypt.compare(
-      loginDto.password,
-      user.password,
-    );
-    if (!isPasswordMath) {
-      throw new HttpException('Wrong Password', 400);
-    }
+  login(loginDto: LoginDto) {
+    // User is preloaded and password validated by pipes
+    const user = loginDto._user!;
 
     const accessToken = this.jwtService.sign({
       sub: user.id,
@@ -71,31 +43,20 @@ export class AuthService {
   }
 
   async loginByOtp(loginByOtpDto: LoginByOtpDto) {
-    const user = await this.usersService.findUserByPhone(loginByOtpDto.phone);
-    if (!user) {
-      throw new HttpException('User not found', 404);
-    }
+    // User is preloaded by UserExistsByPhonePipe
+    const user = loginByOtpDto._user!;
 
     if (loginByOtpDto.code) {
-      const checkCode = await this.codeRepository.findOne({
-        where: {
-          code: loginByOtpDto.code,
-          phone: loginByOtpDto.phone,
-          is_used: false,
-        },
-      });
+      // Code is already validated by OtpCodeValidationPipe
+      const checkCode = loginByOtpDto._validatedCode!;
 
-      if (checkCode) {
-        await this.codeRepository.update(checkCode, { is_used: true });
-        const accessToken = this.jwtService.sign({
-          sub: user.id,
-          email: user.email,
-          role: user.role,
-        });
-        return { access_token: accessToken };
-      } else {
-        throw new HttpException('code is not valid', 400);
-      }
+      await this.codeRepository.update(checkCode, { is_used: true });
+      const accessToken = this.jwtService.sign({
+        sub: user.id,
+        email: user.email,
+        role: user.role,
+      });
+      return { access_token: accessToken };
     } else {
       const otp = await this.generateOtpCode();
       await this.codeRepository.save({
@@ -132,7 +93,10 @@ export class AuthService {
   }
 
   async getProfile(userId: number) {
-    const user = await this.usersService.findOne(userId);
+    // User ID comes from valid JWT token, so user should exist
+    const user = await this.usersRepository.findOne({
+      where: { id: userId },
+    });
     return user;
   }
 
@@ -186,6 +150,7 @@ export class AuthService {
     } catch (error) {
       console.error('Google login error:', error);
       throw new HttpException(
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         error.message || 'Google authentication failed',
         401,
       );

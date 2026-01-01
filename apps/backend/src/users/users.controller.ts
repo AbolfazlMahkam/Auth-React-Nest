@@ -6,12 +6,17 @@ import {
   Patch,
   Param,
   Delete,
+  UsePipes,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { Roles } from '../common/decorators/roles.decorator';
 import { GetUser } from '../common/decorators/get-user.decorator';
+import { UniqueEmailPipe } from '../common/pipes/unique-email.pipe';
+import { UniquePhonePipe } from '../common/pipes/unique-phone.pipe';
+import { UserExistsPipe } from '../common/pipes/user-exists.pipe';
+import Users from '../entities/user.entity';
 
 @Controller('users')
 export class UsersController {
@@ -19,6 +24,7 @@ export class UsersController {
 
   @Post()
   @Roles('admin', 'super_admin')
+  @UsePipes(UniqueEmailPipe, UniquePhonePipe)
   create(@Body() createUserDto: CreateUserDto) {
     return this.usersService.createUser(createUserDto);
   }
@@ -37,24 +43,27 @@ export class UsersController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: number, @GetUser('id') userId: number) {
+  findOne(
+    @Param('id', UserExistsPipe) user: Users,
+    @GetUser('id') userId: number,
+  ) {
     // Users can view their own profile or admins can view any profile
-    return this.usersService.findOne(id);
+    return user;
   }
 
   @Patch(':id')
   update(
-    @Param('id') id: number,
+    @Param('id', UserExistsPipe) user: Users,
     @Body() updateUserDto: UpdateUserDto,
     @GetUser('id') userId: number,
   ) {
     // Users can update their own profile or admins can update any profile
-    return this.usersService.update(id, updateUserDto);
+    return this.usersService.update(user, updateUserDto);
   }
 
   @Delete(':id')
   @Roles('admin', 'super_admin')
-  remove(@Param('id') id: number) {
-    return this.usersService.remove(id);
+  remove(@Param('id', UserExistsPipe) user: Users) {
+    return this.usersService.remove(user);
   }
 }

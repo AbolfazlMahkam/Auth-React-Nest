@@ -51,33 +51,27 @@ export class UsersService {
   };
 
   async findOne(id: number) {
+    // This method is for internal use only
+    // External endpoints should use UserExistsPipe for validation
     const user = await this.usersRepository.findOne({
       where: { id },
     });
-
-    if (!user) {
-      throw new HttpException('User not found', 404);
-    }
     return user;
   }
 
-  async update(id: number, updateUserDto: UpdateUserDto) {
-    const user = await this.findOne(id);
-
+  async update(user: Users, updateUserDto: UpdateUserDto) {
     Object.assign(user, updateUserDto);
     await this.usersRepository.save(user);
 
     return user;
   }
 
-  async remove(id: number) {
-    const user = await this.findOne(id);
-
+  async remove(user: Users) {
     await this.usersRepository.remove(user);
 
     return {
       message: 'User successfully deleted',
-      id,
+      id: user.id,
     };
   }
 }

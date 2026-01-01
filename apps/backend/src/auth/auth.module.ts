@@ -9,6 +9,12 @@ import { JwtModule, JwtModuleOptions } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import Codes from '../entities/code.entity';
+import { UniqueEmailPipe } from '../common/pipes/unique-email.pipe';
+import { UniquePhonePipe } from '../common/pipes/unique-phone.pipe';
+import { UserExistsByEmailPipe } from '../common/pipes/user-exists-by-email.pipe';
+import { UserExistsByPhonePipe } from '../common/pipes/user-exists-by-phone.pipe';
+import { PasswordValidationPipe } from '../common/pipes/password-validation.pipe';
+import { OtpCodeValidationPipe } from '../common/pipes/otp-code-validation.pipe';
 
 @Module({
   imports: [
@@ -30,6 +36,16 @@ import Codes from '../entities/code.entity';
     TypeOrmModule.forFeature([Users, Codes]),
   ],
   controllers: [AuthController],
-  providers: [AuthService, UsersService, JwtStrategy],
+  providers: [
+    AuthService,
+    UsersService,
+    JwtStrategy,
+    UniqueEmailPipe,
+    UniquePhonePipe,
+    UserExistsByEmailPipe,
+    UserExistsByPhonePipe,
+    PasswordValidationPipe,
+    OtpCodeValidationPipe,
+  ],
 })
 export class AuthModule {}

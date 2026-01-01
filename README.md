@@ -178,10 +178,18 @@ auth-react-nest/
 │   │   │   │   ├── guards/  # Authentication & authorization guards
 │   │   │   │   │   ├── jwt-auth.guard.ts  # JWT authentication guard
 │   │   │   │   │   └── roles.guard.ts     # Role-based access control
-│   │   │   │   └── decorators/  # Custom decorators
-│   │   │   │       ├── public.decorator.ts   # @Public() decorator
-│   │   │   │       ├── roles.decorator.ts    # @Roles() decorator
-│   │   │   │       └── get-user.decorator.ts # @GetUser() decorator
+│   │   │   │   ├── decorators/  # Custom decorators
+│   │   │   │   │   ├── public.decorator.ts   # @Public() decorator
+│   │   │   │   │   ├── roles.decorator.ts    # @Roles() decorator
+│   │   │   │   │   └── get-user.decorator.ts # @GetUser() decorator
+│   │   │   │   └── pipes/   # Validation pipes
+│   │   │   │       ├── user-exists.pipe.ts         # User existence validation
+│   │   │   │       ├── unique-email.pipe.ts        # Email uniqueness validation
+│   │   │   │       ├── unique-phone.pipe.ts        # Phone uniqueness validation
+│   │   │   │       ├── user-exists-by-email.pipe.ts # Login user validation
+│   │   │   │       ├── user-exists-by-phone.pipe.ts # OTP user validation
+│   │   │   │       ├── password-validation.pipe.ts  # Password verification
+│   │   │   │       └── otp-code-validation.pipe.ts  # OTP code verification
 │   │   │   ├── entities/    # TypeORM entities
 │   │   │   ├── migrations/  # Database migrations
 │   │   │   ├── logger/      # Custom logger service
@@ -542,6 +550,422 @@ GET /users/admins/list - List all admins (super_admin only)
 - ✅ Token expiration handling
 - ✅ Reflector-based metadata for decorators
 - ✅ TypeScript type safety throughout
+
+---
+
+## 🔍 Validation Pipes Architecture
+
+The application implements a **pipe-based validation architecture** that separates validation concerns from business logic, providing clean, reusable, and testable code.
+
+### Why Pipes for Validation?
+
+Traditional validation in services leads to:
+- ❌ Repeated validation code across services
+- ❌ Mixed concerns (validation + business logic)
+- ❌ Harder to test and maintain
+- ❌ Late failure (validation happens inside service methods)
+
+Our pipe-based approach provides:
+- ✅ **Separation of Concerns** - Validation separated from business logic
+- ✅ **Fail-Fast** - Validation happens before entering service layer
+- ✅ **Reusability** - Write once, use anywhere
+- ✅ **Type Safety** - DTOs enriched with validated entities
+- ✅ **Single Responsibility** - Each pipe validates one thing
+
+### Available Validation Pipes
+
+#### 1. **UserExistsPipe** - Entity Existence Validation
+
+Validates that a user exists by ID (route parameter) and returns the loaded entity.
+
+```typescript
+// apps/backend/src/common/pipes/user-exists.pipe.ts
+@Get(':id')
+findOne(@Param('id', UserExistsPipe) user: Users) {
+  return user; // User already loaded and validated by pipe
+}
+```
+
+**Applied to:**
+- `GET /users/:id` - Get user by ID
+- `PATCH /users/:id` - Update user profile
+- `DELETE /users/:id` - Delete user
+
+**Benefits:**
+- No need to check `if (!user)` in controllers/services
+- User entity pre-loaded for use
+- Consistent 404 error responses
+
+---
+
+#### 2. **UniqueEmailPipe** - Email Uniqueness Validation
+
+Validates that an email doesn't already exist in the database.
+
+```typescript
+// Automatically applied to registration and user creation
+@Post('register')
+@UsePipes(UniqueEmailPipe, UniquePhonePipe)
+register(@Body() registerDto: RegisterDto) {
+  return this.authService.register(registerDto);
+}
+```
+
+**Applied to:**
+- `POST /auth/register` - User registration
+- `POST /users` - Admin user creation
+
+**Throws:** `400 Bad Request` - "Email already exists"
+
+---
+
+#### 3. **UniquePhonePipe** - Phone Uniqueness Validation
+
+Validates that a phone number doesn't already exist in the database.
+
+**Applied to:**
+- `POST /auth/register` - User registration
+- `POST /users` - Admin user creation
+
+**Throws:** `400 Bad Request` - "Phone number already exists"
+
+---
+
+#### 4. **UserExistsByEmailPipe** - Login User Validation
+
+Validates user exists by email and pre-loads the user entity with password for authentication.
+
+```typescript
+@Post('login')
+@UsePipes(UserExistsByEmailPipe, PasswordValidationPipe)
+login(@Body() loginDto: LoginDto) {
+  return this.authService.login(loginDto);
+}
+
+// In service - user already loaded!
+async login(loginDto: LoginDto) {
+  const user = loginDto._user!; // Pre-loaded by pipe
+  // Just generate JWT, validation done!
+}
+```
+
+**Applied to:** `POST /auth/login`
+
+**Benefits:**
+- Single database query (pipe loads user once)
+- User attached to DTO as `_user` property
+- Service focuses on JWT generation, not validation
+
+---
+
+#### 5. **UserExistsByPhonePipe** - OTP Login User Validation
+
+Validates user exists by phone number and pre-loads the user entity for OTP authentication.
+
+**Applied to:** `POST /auth/login_otp`
+
+**DTO Enhancement:**
+```typescript
+export class LoginByOtpDto {
+  phone: string;
+  code?: number;
+
+  _user?: Users; // Populated by UserExistsByPhonePipe
+  _validatedCode?: Codes; // Populated by OtpCodeValidationPipe
+}
+```
+
+---
+
+#### 6. **PasswordValidationPipe** - Password Verification
+
+Validates that the provided password matches the user's hashed password.
+
+```typescript
+// Applied in combination with UserExistsByEmailPipe
+@Post('login')
+@UsePipes(UserExistsByEmailPipe, PasswordValidationPipe)
+login(@Body() loginDto: LoginDto) { ... }
+```
+
+**Applied to:** `POST /auth/login`
+
+**Throws:** `400 Bad Request` - "Wrong Password"
+
+**How it works:**
+1. `UserExistsByEmailPipe` loads user with password
+2. `PasswordValidationPipe` verifies password using bcrypt
+3. Service receives pre-validated credentials
+
+---
+
+#### 7. **OtpCodeValidationPipe** - OTP Code Verification
+
+Validates that the OTP code is valid, unused, and matches the phone number.
+
+```typescript
+@Post('login_otp')
+@UsePipes(UserExistsByPhonePipe, OtpCodeValidationPipe)
+loginByOtp(@Body() loginByOtpDto: LoginByOtpDto) { ... }
+```
+
+**Applied to:** `POST /auth/login_otp` (when code is provided)
+
+**Throws:** `400 Bad Request` - "code is not valid"
+
+**Validation checks:**
+- Code exists in database
+- Code matches phone number
+- Code has not been used (`is_used: false`)
+
+---
+
+### Pipe Execution Flow
+
+#### Example: User Login
+
+```typescript
+// 1. Request arrives
+POST /auth/login
+{
+  "email": "user@example.com",
+  "password": "password123"
+}
+
+// 2. Pipes execute in order
+@UsePipes(UserExistsByEmailPipe, PasswordValidationPipe)
+
+// 3. UserExistsByEmailPipe
+//    - Queries database for user by email
+//    - If not found: throws 404 "User not found"
+//    - If found: attaches user to loginDto._user
+
+// 4. PasswordValidationPipe
+//    - Compares password with loginDto._user.password
+//    - If mismatch: throws 400 "Wrong Password"
+//    - If match: continues
+
+// 5. Controller receives validated DTO
+login(@Body() loginDto: LoginDto) {
+  // loginDto._user is guaranteed to exist and be authenticated
+}
+
+// 6. Service focuses on business logic
+async login(loginDto: LoginDto) {
+  const user = loginDto._user!; // No validation needed!
+  return { access_token: this.jwtService.sign({...}) };
+}
+```
+
+---
+
+### Before vs After Comparison
+
+#### ❌ Before: Validation in Services
+
+```typescript
+// Repetitive validation in every service method
+async login(loginDto: LoginDto) {
+  // Validation #1: User exists?
+  const user = await this.usersService.findUserByEmail(loginDto.email);
+  if (!user) {
+    throw new HttpException('User not found', 404);
+  }
+
+  // Validation #2: Password correct?
+  const isPasswordMatch = await bcrypt.compare(loginDto.password, user.password);
+  if (!isPasswordMatch) {
+    throw new HttpException('Wrong Password', 400);
+  }
+
+  // Finally, business logic
+  return { access_token: this.jwtService.sign({...}) };
+}
+```
+
+**Problems:**
+- 🔴 Validation mixed with business logic
+- 🔴 Repeated `if (!user)` checks everywhere
+- 🔴 Hard to test validation separately
+- 🔴 Late failure (validation deep in service)
+
+---
+
+#### ✅ After: Validation in Pipes
+
+```typescript
+// Controller: Declare validation pipeline
+@Post('login')
+@UsePipes(UserExistsByEmailPipe, PasswordValidationPipe)
+login(@Body() loginDto: LoginDto) {
+  return this.authService.login(loginDto);
+}
+
+// Service: Pure business logic
+async login(loginDto: LoginDto) {
+  const user = loginDto._user!; // Pre-validated and loaded!
+  return { access_token: this.jwtService.sign({...}) };
+}
+```
+
+**Benefits:**
+- 🟢 Validation separated from business logic
+- 🟢 No repetitive checks in services
+- 🟢 Easy to test pipes independently
+- 🟢 Fail-fast at controller level
+- 🟢 Clean, readable service methods
+
+---
+
+### Project Structure
+
+```
+apps/backend/src/
+├── common/
+│   └── pipes/                          # All validation pipes
+│       ├── user-exists.pipe.ts         # Route param validation
+│       ├── unique-email.pipe.ts        # Email uniqueness
+│       ├── unique-phone.pipe.ts        # Phone uniqueness
+│       ├── user-exists-by-email.pipe.ts # Login user validation
+│       ├── user-exists-by-phone.pipe.ts # OTP user validation
+│       ├── password-validation.pipe.ts  # Password verification
+│       └── otp-code-validation.pipe.ts  # OTP code verification
+├── auth/
+│   ├── dto/
+│   │   ├── login.dto.ts               # Enhanced with _user property
+│   │   └── login-otp.dto.ts           # Enhanced with _user, _validatedCode
+│   ├── auth.controller.ts             # Pipes applied via @UsePipes()
+│   └── auth.service.ts                # Pure business logic, no validation
+└── users/
+    ├── users.controller.ts            # Pipes applied to route params
+    └── users.service.ts               # No HttpException throws!
+```
+
+---
+
+### Best Practices
+
+#### 1. **Compose Pipes for Complex Validation**
+
+```typescript
+// Multiple pipes execute in sequence
+@Post('register')
+@UsePipes(UniqueEmailPipe, UniquePhonePipe)
+register(@Body() registerDto: RegisterDto) { ... }
+```
+
+#### 2. **Enrich DTOs with Validated Data**
+
+```typescript
+// Pipe attaches validated entities to DTO
+export class LoginDto {
+  email: string;
+  password: string;
+
+  _user?: Users; // Populated by pipe
+}
+
+// Service accesses pre-loaded data
+const user = loginDto._user!;
+```
+
+#### 3. **Keep Pipes Focused**
+
+Each pipe validates **one thing**:
+- ✅ `UserExistsPipe` - User exists by ID
+- ✅ `UniqueEmailPipe` - Email is unique
+- ❌ Don't create: `UserValidationPipe` that does everything
+
+#### 4. **Register Pipes as Providers**
+
+```typescript
+// auth.module.ts
+@Module({
+  providers: [
+    AuthService,
+    UserExistsByEmailPipe,
+    PasswordValidationPipe,
+    // ... other pipes
+  ],
+})
+export class AuthModule {}
+```
+
+#### 5. **Use Appropriate HTTP Status Codes**
+
+- `NotFoundException (404)` - Entity not found
+- `BadRequestException (400)` - Validation failed (duplicate, invalid data)
+- `UnauthorizedException (401)` - Authentication failed
+
+---
+
+### Exception Handling
+
+All validation pipes throw standard NestJS exceptions:
+
+```json
+// 404 Not Found
+{
+  "statusCode": 404,
+  "message": "User not found"
+}
+
+// 400 Bad Request
+{
+  "statusCode": 400,
+  "message": "Email already exists"
+}
+
+// 400 Bad Request
+{
+  "statusCode": 400,
+  "message": "Wrong Password"
+}
+```
+
+---
+
+### Testing Validation Pipes
+
+Pipes can be tested independently:
+
+```typescript
+describe('UserExistsPipe', () => {
+  let pipe: UserExistsPipe;
+  let repository: Repository<Users>;
+
+  it('should throw NotFoundException if user does not exist', async () => {
+    jest.spyOn(repository, 'findOne').mockResolvedValue(null);
+
+    await expect(pipe.transform(999, {} as ArgumentMetadata))
+      .rejects.toThrow(NotFoundException);
+  });
+
+  it('should return user if exists', async () => {
+    const user = { id: 1, email: 'test@example.com' };
+    jest.spyOn(repository, 'findOne').mockResolvedValue(user);
+
+    const result = await pipe.transform(1, {} as ArgumentMetadata);
+    expect(result).toEqual(user);
+  });
+});
+```
+
+---
+
+### Summary
+
+| Feature | Before (Services) | After (Pipes) |
+|---------|------------------|---------------|
+| **Validation Location** | Inside services | At controller level |
+| **Code Repetition** | High (repeated checks) | None (reusable pipes) |
+| **Separation of Concerns** | Mixed | Clean separation |
+| **Failure Timing** | Late (in service) | Early (before service) |
+| **Testability** | Coupled with business logic | Pipes tested independently |
+| **Service Complexity** | High (validation + logic) | Low (pure logic) |
+| **Type Safety** | Manual null checks | DTOs enriched with entities |
+
+**Result:** Clean, maintainable, testable code with zero validation repetition! 🎉
 
 ---
 
